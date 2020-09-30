@@ -1,30 +1,18 @@
-import React,{useState, useEffect} from 'react'
+import React,{useEffect} from 'react'
+import {connect} from 'react-redux' //function tu connect to redux
 import Preloader from '../layaout/Preloader'
 import LogItem from './LogItem'
+import PropTypes from 'prop-types'
+import { getLogs } from '../../actions/logActions'
 
-const Logs = () => {
-
-    const [logs,setLogs] = useState([]);
-    const [loading,setLoading] = useState(false);
+const Logs = ({log: {logs,loading}, getLogs}) => {
 
     useEffect(() => {
         getLogs();
         //eslint-disable-next-line
     },[]);
 
-    const getLogs = async() => {
-        
-        setLoading(true);
-
-        const res = await fetch('/logs');
-        const data = await res.json();
-
-        setLogs(data);   
-        setLoading(false);
-
-    }
-
-    if(loading){
+    if(loading || logs === null ){
         return <Preloader/>
     }
     return (
@@ -34,9 +22,26 @@ const Logs = () => {
             </li>
             {!loading && logs.length === 0 ? (<p className='center'>No logs to show...</p>
             ):(
-            logs.map(log=><LogItem key={log.id} log={log}/>))}
+            logs.map(log =><LogItem key={log.id} log={log}/>)
+            )}
         </ul>
     )
 }
 
-export default Logs
+Logs.propTypes ={
+    log: PropTypes.object.isRequired,
+    getLogs: PropTypes.func.isRequired
+}
+
+/*
+    This function brings the state as prop. 
+    You can access to a part of or bring the whole state.
+    log comes from the reducers/index.js 
+    logs: state.log.logs
+*/
+const mapStateToProps = state =>({
+    log: state.log,
+    current: state.log.current
+})
+//when the action is pass is converted to prop. so to use it you have to inclue it 
+export default connect(mapStateToProps,{getLogs})(Logs);
